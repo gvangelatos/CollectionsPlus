@@ -1,0 +1,86 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/collections"></ion-back-button>
+    </ion-buttons>
+    <ion-title *ngIf="mode === 'ios'">{{collection?.name}}</ion-title>
+    <ion-buttons slot="primary">
+      <ion-button (click)="onAddClicked()">
+        <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="small">{{collection?.name}}</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-grid>
+    <ion-searchbar
+      (value)="searchQuery"
+      [debounce]="350"
+      show-cancel-button="focus"
+      show-clear-button="always"
+      placeholder="Search Item"
+      animated="true"
+      enterkeyhint="Search"
+      (ionInput)="handleSearchInput($event)"
+    ></ion-searchbar>
+    <ng-container *ngIf="!searchQuery.trim().length">
+      <ion-row *ngFor="let item of collection?.items">
+        <ion-col size-sm="6" offset-sm="3">
+          <ion-card>
+            <ion-card-content>
+              <div *ngFor="let keyValuePair of item | keyvalue">
+                <b>{{keyValuePair.key}}:</b>
+                <span> {{keyValuePair.value}}</span>
+              </div>
+            </ion-card-content>
+
+            <div class="ion-text-center">
+              <ion-button (click)="onDelete()" fill="clear" color="danger">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+    <ng-container
+      *ngIf="searchQuery.trim().length > 0 && collectionItemsFilteredSearch.length > 0 && !searchingCollection"
+    >
+      <ion-row *ngFor="let item of collectionItemsFilteredSearch">
+        <ion-col size-sm="6" offset-sm="3">
+          <ion-card>
+            <ion-card-content>
+              <div *ngFor="let keyValuePair of item | keyvalue">
+                <b>{{keyValuePair.key}}:</b>
+                <span> {{keyValuePair.value}}</span>
+              </div>
+            </ion-card-content>
+
+            <div class="ion-text-center">
+              <ion-button (click)="onDelete()" fill="clear" color="danger">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+    <ng-container
+      *ngIf="searchQuery.trim().length > 0 && !collectionItemsFilteredSearch.length && !searchingCollection"
+    >
+      <div
+        class="ion-text-center"
+        *ngIf="searchQuery.trim().length > 0 && !collectionItemsFilteredSearch.length && !searchingCollection"
+      >
+        <h3>Looks like we couldn't find anything for your search!</h3>
+      </div>
+    </ng-container>
+  </ion-grid>
+</ion-content>
