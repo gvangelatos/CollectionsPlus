@@ -19,53 +19,27 @@
     </ion-toolbar>
   </ion-header>
 
-  <ion-grid *ngIf="!collections || collections.length <= 0">
+  <ion-grid *ngIf="loadingCollections">
     <ion-row *ngFor="let loop of [1,2,3,4]">
       <ion-col size-sm="6" offset-sm="3">
         <!-- <ion-skeleton-text [animated]="true"></ion-skeleton-text> -->
         <ion-card>
           <ion-skeleton-text
             [animated]="true"
-            style="height: 230px"
+            style="height: 80px"
           ></ion-skeleton-text>
-          <ion-card-header>
-            <ion-card-title>
-              <ion-skeleton-text
-                [animated]="true"
-                style="height: 28px"
-              ></ion-skeleton-text>
-              <ion-skeleton-text
-                [animated]="true"
-                style="height: 28px"
-              ></ion-skeleton-text>
-              <ion-skeleton-text
-                [animated]="true"
-                style="height: 28px"
-              ></ion-skeleton-text>
-            </ion-card-title>
-            <ion-card-subtitle>
-              <ion-skeleton-text
-                [animated]="true"
-                style="width: 75%"
-              ></ion-skeleton-text>
-            </ion-card-subtitle>
-          </ion-card-header>
 
-          <ion-card-content>
-            <ion-skeleton-text
-              [animated]="true"
-              style="height: 19px"
-            ></ion-skeleton-text>
-          </ion-card-content>
           <div class="ion-text-center">
-            <ion-button fill="clear" color="medium"> More </ion-button>
+            <ion-button fill="clear" color="medium">
+              See Collection
+            </ion-button>
           </div>
         </ion-card>
       </ion-col>
     </ion-row>
   </ion-grid>
 
-  <ion-grid *ngIf="collections && collections.length">
+  <ion-grid *ngIf="collections && collections.length && !loadingCollections">
     <ion-row *ngFor="let collection of collections">
       <ion-col size-sm="6" offset-sm="3">
         <ion-card>
@@ -85,7 +59,27 @@
               See Collection
             </ion-button>
           </div>
+          <div class="ion-text-center delete-btn">
+            <ion-button
+              (click)="onDeleteCollection(collection?.id)"
+              fill="clear"
+              color="danger"
+              size="small"
+            >
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
+          </div>
         </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-grid *ngIf="collections.length <= 0 && !loadingCollections">
+    <ion-row>
+      <ion-col size-sm="6" offset-sm="3">
+        <div class="ion-text-center">
+          Looks like you have no collections yet.. Let's change that!
+        </div>
       </ion-col>
     </ion-row>
   </ion-grid>

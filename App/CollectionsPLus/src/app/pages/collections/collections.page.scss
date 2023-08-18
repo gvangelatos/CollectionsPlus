@@ -11,4 +11,15 @@
       margin-bottom: 15px;
     }
   }
+  ion-card {
+    ion-card-title {
+      padding-right: 30px;
+    }
+  }
+  .delete-btn {
+    width: min-content;
+    position: absolute;
+    top: 3px;
+    right: 0px;
+  }
 }

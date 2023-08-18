@@ -35,14 +35,33 @@
         <ion-col size-sm="6" offset-sm="3">
           <ion-card>
             <ion-card-content>
-              <div *ngFor="let keyValuePair of item | keyvalue">
-                <b>{{keyValuePair.key}}:</b>
-                <span> {{keyValuePair.value}}</span>
-              </div>
+              <ng-container *ngFor="let keyValuePair of item | keyvalue">
+                <ion-grid>
+                  <ion-row
+                    *ngIf="keyValuePair.key !== 'id'"
+                    class="key-value-row"
+                  >
+                    <ion-col size="5" class="ion-text-start">
+                      <b> {{keyValuePair.key}}: </b>
+                    </ion-col>
+                    <ion-col size="7" class="ion-text-end">
+                      <span> {{keyValuePair.value}} </span>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+                <!-- <div *ngIf="keyValuePair.key !== 'id' ">
+                  <b>{{keyValuePair.key}}:</b>
+                  <span> {{keyValuePair.value}}</span>
+                </div> -->
+              </ng-container>
             </ion-card-content>
 
             <div class="ion-text-center">
-              <ion-button (click)="onDelete()" fill="clear" color="danger">
+              <ion-button
+                (click)="onDelete(item?.id)"
+                fill="clear"
+                color="danger"
+              >
                 <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
               </ion-button>
             </div>
@@ -57,14 +76,24 @@
         <ion-col size-sm="6" offset-sm="3">
           <ion-card>
             <ion-card-content>
-              <div *ngFor="let keyValuePair of item | keyvalue">
-                <b>{{keyValuePair.key}}:</b>
-                <span> {{keyValuePair.value}}</span>
-              </div>
+              <ng-container *ngFor="let keyValuePair of item | keyvalue">
+                <ion-grid>
+                  <ion-row *ngIf="keyValuePair.key !== 'id' ">
+                    <ion-col size="6"><b>{{keyValuePair.key}}:</b></ion-col>
+                    <ion-col size="6"
+                      ><span> {{keyValuePair.value}}</span></ion-col
+                    >
+                  </ion-row>
+                </ion-grid>
+              </ng-container>
             </ion-card-content>
 
             <div class="ion-text-center">
-              <ion-button (click)="onDelete()" fill="clear" color="danger">
+              <ion-button
+                (click)="onDelete(item?.id)"
+                fill="clear"
+                color="danger"
+              >
                 <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
               </ion-button>
             </div>
