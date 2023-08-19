@@ -9,24 +9,7 @@ export class CollectionsService {
     {
       name: 'Books at home',
       id: '12345',
-      attributes: [
-        {
-          attributeName: 'Book Name',
-          attributeType: 'string',
-        },
-        {
-          attributeName: 'Author',
-          attributeType: 'string',
-        },
-        {
-          attributeName: 'Year',
-          attributeType: 'string',
-        },
-        {
-          attributeName: 'Price',
-          attributeType: 'number',
-        },
-      ],
+      attributes: ['Book Name', 'Author', 'Year', 'Price'],
       items: [
         {
           'Book Name': 'Levitas',
@@ -48,24 +31,7 @@ export class CollectionsService {
     {
       name: 'Books at Summer Home',
       id: '123456',
-      attributes: [
-        {
-          attributeName: 'Book Name',
-          attributeType: 'string',
-        },
-        {
-          attributeName: 'Author',
-          attributeType: 'string',
-        },
-        {
-          attributeName: 'Year',
-          attributeType: 'string',
-        },
-        {
-          attributeName: 'Price',
-          attributeType: 'number',
-        },
-      ],
+      attributes: ['Book Name', 'Author', 'Year', 'Price'],
       items: [
         {
           'Book Name': 'Levitas III',
