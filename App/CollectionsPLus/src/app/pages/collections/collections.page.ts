@@ -1,11 +1,14 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import {
   ActionSheetController,
+  IonModal,
   LoadingController,
   ToastController,
 } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { CollectionsService } from 'src/app/services/collections/collections.service';
+import { OverlayEventDetail } from '@ionic/core/components';
 
 @Component({
   selector: 'app-collections',
@@ -15,24 +18,63 @@ import { CollectionsService } from 'src/app/services/collections/collections.ser
 export class CollectionsPage implements OnInit, OnDestroy {
   collections: any[] = [];
   loadingCollections: boolean = true;
+  form!: FormGroup;
+  attributes: any[] = [{ name: '' }];
+  @ViewChild(IonModal) modal!: IonModal;
   private _subscriptions: Subscription[] = [];
 
   constructor(
     private collectionsService: CollectionsService,
     private actionSheetCtrl: ActionSheetController,
     private loadingCtrl: LoadingController,
-    private toastCtrl: ToastController
-  ) {}
+    private toastCtrl: ToastController,
+    private formBuilder: FormBuilder
+  ) {
+    this.form = this.formBuilder.group({
+      collectionName: this.formBuilder.array([
+        this.formBuilder.group({
+          name: [
+            null,
+            {
+              updateOn: 'change',
+              validators: [Validators.required],
+            },
+          ],
+        }),
+      ]),
+      attributes: this.formBuilder.array([]),
+    });
+  }
 
   ngOnInit() {
     this._subscriptions.push(
       this.collectionsService.collections.subscribe((collections) => {
         this.collections = collections;
         this.loadingCollections = false;
-        // console.log('all');
         console.log(this.collections);
       })
     );
+    this.attributes.forEach((attribute) =>
+      this.attributesControl.push(
+        this.formBuilder.group({
+          name: [
+            attribute.name,
+            {
+              updateOn: 'change',
+              validators: [Validators.required],
+            },
+          ],
+        })
+      )
+    );
+  }
+
+  get attributesControl(): FormArray {
+    return this.form.get('attributes') as FormArray;
+  }
+
+  get collectionNameControl(): FormArray {
+    return this.form.get('collectionName') as FormArray;
   }
 
   onAddClicked() {}
@@ -85,6 +127,116 @@ export class CollectionsPage implements OnInit, OnDestroy {
       .then((actionSheetEl) => {
         actionSheetEl.present();
       });
+  }
+
+  add() {
+    this.attributesControl.push(
+      this.formBuilder.group({
+        name: [
+          null,
+          {
+            updateOn: 'change',
+            validators: [Validators.required],
+          },
+        ],
+      })
+    );
+  }
+
+  remove(index: any) {
+    this.attributesControl.removeAt(index);
+  }
+
+  cancel() {
+    this.modal.dismiss(null, 'cancel');
+  }
+
+  confirm() {
+    const newCollectionAttributes: any[] = [];
+    this.form.value.attributes.forEach((attributeObj: any) => {
+      newCollectionAttributes.push(attributeObj.name);
+    });
+    const newCollection = {
+      name: this.form.value.collectionName[0].name,
+      attributes: newCollectionAttributes,
+      items: [],
+      id: Math.random().toString(),
+    };
+    this.loadingCtrl
+      .create({
+        message: 'Creating your new collection...',
+      })
+      .then((loadingEl) => {
+        loadingEl.present();
+        this.collectionsService
+          .addCollection(newCollection)
+          .subscribe((res) => {
+            if (res) {
+              this.toastCtrl
+                .create({
+                  message: 'Collection Created Successfully!',
+                  duration: 1500,
+                  position: 'bottom',
+                  icon: 'checkmark-circle-outline',
+                  color: 'success',
+                })
+                .then((toastEl) => {
+                  toastEl.present();
+                  this.modal.dismiss(null, 'confirm');
+                  loadingEl.dismiss();
+                  this.form.reset();
+                  this.form = this.formBuilder.group({
+                    collectionName: this.formBuilder.array([
+                      this.formBuilder.group({
+                        name: [
+                          null,
+                          {
+                            updateOn: 'change',
+                            validators: [Validators.required],
+                          },
+                        ],
+                      }),
+                    ]),
+                    attributes: this.formBuilder.array([]),
+                  });
+                  this.attributes = [{ name: '' }];
+                  this.attributes.forEach((attribute) =>
+                    this.attributesControl.push(
+                      this.formBuilder.group({
+                        name: [
+                          attribute.name,
+                          {
+                            updateOn: 'change',
+                            validators: [Validators.required],
+                          },
+                        ],
+                      })
+                    )
+                  );
+                });
+            } else {
+              loadingEl.dismiss();
+              this.toastCtrl
+                .create({
+                  message: 'Cold not add item!',
+                  duration: 1500,
+                  position: 'bottom',
+                  icon: 'close-circle-outline',
+                  color: 'danger',
+                })
+                .then((toastEl) => {
+                  toastEl.present();
+                });
+            }
+          });
+      });
+  }
+
+  onWillDismiss(event: Event) {
+    const ev = event as CustomEvent<OverlayEventDetail<string>>;
+    if (ev.detail.role === 'confirm') {
+      // this.message = `Hello, ${ev.detail.data}!`;
+    }
   }
 
   ngOnDestroy() {

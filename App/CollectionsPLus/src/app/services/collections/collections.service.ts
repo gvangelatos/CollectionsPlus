@@ -123,5 +123,42 @@ export class CollectionsService {
     );
   }
 
+  addItemToCollection(collectionId: string, item: any) {
+    return this.collections.pipe(
+      take(1),
+      delay(300),
+      tap((collections) => {
+        const selectedCollectionIndex = collections.findIndex(
+          (collection) => collection.id === collectionId
+        );
+        if (selectedCollectionIndex < 0) {
+          return;
+        }
+        const updatedCollectionItems = [
+          ...collections[selectedCollectionIndex].items,
+          item,
+        ];
+        const updatedCollection = <any>{
+          ...collections[selectedCollectionIndex],
+          items: [...updatedCollectionItems],
+        };
+        let updatedCollections = [...collections];
+        updatedCollections[selectedCollectionIndex] = updatedCollection;
+        this._collections.next(updatedCollections);
+      })
+    );
+  }
+
+  addCollection(collection: any) {
+    return this.collections.pipe(
+      take(1),
+      delay(300),
+      tap((collections) => {
+        let updatedCollections = [...collections, collection];
+        this._collections.next(updatedCollections);
+      })
+    );
+  }
+
   constructor() {}
 }

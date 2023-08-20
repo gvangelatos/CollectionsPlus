@@ -80,7 +80,6 @@ export class CollectionPage implements OnInit, OnDestroy {
                   });
               }
               this.collection = { ...collection };
-              // console.log(this.collection);
               this.buildForm();
               loadingEl.dismiss();
             });
@@ -202,74 +201,74 @@ export class CollectionPage implements OnInit, OnDestroy {
   }
 
   confirm() {
-    // console.log(this.form);
+    console.log(this.form.value);
+    const newItem = { ...this.form.value, id: Math.random().toString() };
     this.loadingCtrl
       .create({
         message: 'Adding Item to your collection...',
       })
       .then((loadingEl) => {
         loadingEl.present();
-        // this.wardrobeService
-        //   .addClothingItem(newClothingItem)
-        //   .subscribe((res) => {
-        //     if (res) {
         this.collectionsService
-          .getCollection(this.collectionId)
-          .pipe(take(1))
-          .subscribe((collection) => {
-            if (!collection || !collection.id) {
-              loadingEl.dismiss();
-              this.alertCtrl
-                .create({
-                  header: 'Oops...!',
-                  subHeader: 'It seems you encountered a problem!',
-                  message: "We couldn't load your collection!",
-                  buttons: [
-                    {
-                      text: 'Back to Safety',
-                      role: 'confirm',
-                      handler: () => {
-                        this.navCtrl.navigateBack('/collections');
-                      },
-                    },
-                  ],
-                })
-                .then((alertEl) => {
-                  alertEl.present();
+          .addItemToCollection(this.collectionId, newItem)
+          .subscribe((res) => {
+            if (res) {
+              this.collectionsService
+                .getCollection(this.collectionId)
+                .pipe(take(1))
+                .subscribe((collection) => {
+                  if (!collection || !collection.id) {
+                    loadingEl.dismiss();
+                    this.alertCtrl
+                      .create({
+                        header: 'Oops...!',
+                        subHeader: 'It seems you encountered a problem!',
+                        message: "We couldn't load your collection!",
+                        buttons: [
+                          {
+                            text: 'Back to Safety',
+                            role: 'confirm',
+                            handler: () => {
+                              this.navCtrl.navigateBack('/collections');
+                            },
+                          },
+                        ],
+                      })
+                      .then((alertEl) => {
+                        alertEl.present();
+                      });
+                    return;
+                  }
+                  this.collection = { ...collection };
+                  this.toastCtrl
+                    .create({
+                      message: 'Item added Successfully!',
+                      duration: 1500,
+                      position: 'bottom',
+                      icon: 'checkmark-circle-outline',
+                      color: 'success',
+                    })
+                    .then((toastEl) => {
+                      toastEl.present();
+                      this.modal.dismiss(null, 'confirm');
+                      loadingEl.dismiss();
+                      this.form.reset();
+                    });
                 });
-              return;
+            } else {
+              this.toastCtrl
+                .create({
+                  message: 'Cold not add item!',
+                  duration: 1500,
+                  position: 'bottom',
+                  icon: 'close-circle-outline',
+                  color: 'danger',
+                })
+                .then((toastEl) => {
+                  toastEl.present();
+                });
             }
-            this.collection = { ...collection };
-            this.toastCtrl
-              .create({
-                message: 'Item added Successfully!',
-                duration: 1500,
-                position: 'bottom',
-                icon: 'checkmark-circle-outline',
-                color: 'success',
-              })
-              .then((toastEl) => {
-                toastEl.present();
-                this.modal.dismiss(null, 'confirm');
-                loadingEl.dismiss();
-                this.form.reset();
-              });
           });
-
-        // } else {
-        //   this.toastCtrl
-        //     .create({
-        //       message: 'Cold not add item!',
-        //       duration: 1500,
-        //       position: 'bottom',
-        //       icon: 'close-circle-outline',
-        //       color: 'danger',
-        //     })
-        //     .then((toastEl) => {
-        //       toastEl.present();
-        //     });
-        // }
-        // });
       });
   }
 
