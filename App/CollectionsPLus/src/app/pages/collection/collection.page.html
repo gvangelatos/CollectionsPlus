@@ -61,6 +61,7 @@
                 (click)="onDelete(item?.id)"
                 fill="clear"
                 color="danger"
+                [disabled]="disableActions"
               >
                 <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
               </ion-button>
@@ -93,6 +94,7 @@
                 (click)="onDelete(item?.id)"
                 fill="clear"
                 color="danger"
+                [disabled]="disableActions"
               >
                 <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
               </ion-button>

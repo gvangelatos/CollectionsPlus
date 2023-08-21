@@ -28,6 +28,7 @@ export class CollectionPage implements OnInit, OnDestroy {
   collectionItemsFilteredSearch: any[] = [];
   form!: FormGroup;
   fields: any[] = [];
+  disableActions: boolean = false;
   private _subscriptions: Subscription[] = [];
   @ViewChild(IonModal) modal!: IonModal;
 
@@ -122,6 +123,7 @@ export class CollectionPage implements OnInit, OnDestroy {
   onAddClicked() {}
 
   onDelete(itemId: string) {
+    this.disableActions = true;
     this.actionSheetCtrl
       .create({
         header: 'Are you sure you want to delete this item?',
@@ -193,6 +195,7 @@ export class CollectionPage implements OnInit, OnDestroy {
       })
       .then((actionSheetEl) => {
         actionSheetEl.present();
+        this.disableActions = false;
       });
   }
 

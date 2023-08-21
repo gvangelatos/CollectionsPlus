@@ -5,7 +5,11 @@
     </ion-buttons>
     <ion-title>My Collections</ion-title>
     <ion-buttons slot="primary">
-      <ion-button (click)="onAddClicked()" id="open-modal">
+      <ion-button
+        (click)="onAddClicked()"
+        [disabled]="disableActions"
+        id="open-modal"
+      >
         <ion-icon name="add-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -39,14 +43,14 @@
     </ion-row>
   </ion-grid>
 
-  <ion-grid *ngIf="collections && collections.length && !loadingCollections">
+  <ion-grid *ngIf="collections.length > 0 && !loadingCollections">
     <ion-row *ngFor="let collection of collections">
       <ion-col size-sm="6" offset-sm="3">
         <ion-card>
           <ion-card-header>
             <ion-card-title> {{collection?.name}} </ion-card-title>
             <ion-card-subtitle>
-              Contains {{collection?.items.length}} Items.
+              Contains {{collection?.numberOfItems}} Items.
             </ion-card-subtitle>
           </ion-card-header>
 
@@ -54,6 +58,7 @@
             <ion-button
               fill="clear"
               color="primary"
+              [disabled]="disableActions"
               [routerLink]="['/','collection',collection.id]"
             >
               See Collection
@@ -65,6 +70,7 @@
               fill="clear"
               color="danger"
               size="small"
+              [disabled]="disableActions"
             >
               <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
             </ion-button>
@@ -94,7 +100,7 @@
           <ion-title>New Collection!</ion-title>
           <ion-buttons slot="end">
             <ion-button
-              [disabled]="!form.valid"
+              [disabled]="!form.valid || disableActions"
               (click)="confirm()"
               [strong]="true"
               >Confirm</ion-button

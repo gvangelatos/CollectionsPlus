@@ -1,13 +1,84 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>auth</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title>{{!isLogin ? 'Signup' : 'Login'}}</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="ion-padding">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">auth</ion-title>
+      <ion-title size="large">{{!isLogin ? 'Signup' : 'Login'}}</ion-title>
     </ion-toolbar>
   </ion-header>
+  <form #f="ngForm" (ngSubmit)="onSubmit(f)">
+    <ion-grid>
+      <ion-row>
+        <ion-col size-md="6" offset-md="3">
+          <ion-list>
+            <ion-item lines="none">
+              <ion-input
+                ngModel
+                required
+                email
+                lines="none"
+                type="email"
+                name="email"
+                label="Email"
+                #emailCtrl="ngModel"
+                labelPlacement="floating"
+                helperText="Enter your account Email"
+                errorText="Please enter a valid Email"
+              ></ion-input>
+            </ion-item>
+            <ion-item lines="none">
+              <ion-input
+                ngModel
+                required
+                #passwordCtrl="ngModel"
+                minlength="8"
+                [type]="showPassword ? 'text' : 'password'"
+                name="password"
+                label="Password"
+                labelPlacement="floating"
+                helperText="Enter your account password"
+                errorText="Please enter a password with at least 8 characters"
+              ></ion-input>
+              <ion-button
+                fill="clear"
+                color="dark"
+                type="button"
+                (click)="togglePasswordVisible()"
+                ><ion-icon
+                  slot="icon-only"
+                  name="{{showPassword ? 'eye-outline' : 'eye-off-outline'}}"
+                ></ion-icon
+              ></ion-button>
+            </ion-item>
+          </ion-list>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col size-md="6" offset-md="3">
+          <ion-button
+            type="button"
+            color="primary"
+            fill="clear"
+            expand="block"
+            (click)="onSwitchMode()"
+          >
+            Switch to {{isLogin ? 'Signup' : 'Login'}}
+          </ion-button>
+          <ion-button
+            type="submit"
+            color="primary"
+            (click)="f.valid ? onLogin() : wobble()"
+            expand="block"
+            [ngClass]="{'horizontal-shake': wobbling}"
+          >
+            Login
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </form>
 </ion-content>

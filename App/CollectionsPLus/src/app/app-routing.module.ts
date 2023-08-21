@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from './guards/auth-guard/auth.guard';
 
 const routes: Routes = [
   {
@@ -18,6 +19,7 @@ const routes: Routes = [
       import('./pages/collections/collections.module').then(
         (m) => m.CollectionsPageModule
       ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'collection/:collectionId',
@@ -25,17 +27,15 @@ const routes: Routes = [
       import('./pages/collection/collection.module').then(
         (m) => m.CollectionPageModule
       ),
-  },
-  {
-    path: 'new-collection',
-    loadChildren: () =>
-      import('./pages/new-collection/new-collection.module').then(
-        (m) => m.NewCollectionPageModule
-      ),
+    canActivate: [AuthGuard],
   },
   {
     path: 'settings',
-    loadChildren: () => import('./pages/settings/settings.module').then( m => m.SettingsPageModule)
+    loadChildren: () =>
+      import('./pages/settings/settings.module').then(
+        (m) => m.SettingsPageModule
+      ),
+    canActivate: [AuthGuard],
   },
 ];
 

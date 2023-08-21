@@ -17,9 +17,10 @@ import { OverlayEventDetail } from '@ionic/core/components';
 })
 export class CollectionsPage implements OnInit, OnDestroy {
   collections: any[] = [];
-  loadingCollections: boolean = true;
+  loadingCollections: boolean = false;
   form!: FormGroup;
   attributes: any[] = [{ name: '' }];
+  disableActions: boolean = false;
   @ViewChild(IonModal) modal!: IonModal;
   private _subscriptions: Subscription[] = [];
 
@@ -50,8 +51,6 @@ export class CollectionsPage implements OnInit, OnDestroy {
     this._subscriptions.push(
       this.collectionsService.collections.subscribe((collections) => {
         this.collections = collections;
-        this.loadingCollections = false;
-        console.log(this.collections);
       })
     );
     this.attributes.forEach((attribute) =>
@@ -77,9 +76,17 @@ export class CollectionsPage implements OnInit, OnDestroy {
     return this.form.get('collectionName') as FormArray;
   }
 
+  ionViewWillEnter() {
+    this.loadingCollections = true;
+    this.collectionsService.fetchCollections().subscribe(() => {
+      this.loadingCollections = false;
+    });
+  }
+
   onAddClicked() {}
 
   onDeleteCollection(collectionId: string) {
+    this.disableActions = true;
     this.actionSheetCtrl
       .create({
         header:
@@ -101,8 +108,6 @@ export class CollectionsPage implements OnInit, OnDestroy {
                     .deleteCollection(collectionId)
                     .subscribe((res) => {
                       loadingEl.dismiss();
-                      // this.loadingCollections = false;
-
                       this.toastCtrl
                         .create({
                           message: 'Removed Successfully!',
@@ -113,6 +118,7 @@ export class CollectionsPage implements OnInit, OnDestroy {
                         })
                         .then((toastEl) => {
                           toastEl.present();
+                          this.loadingCollections = false;
                         });
                     });
                 });
@@ -126,6 +132,8 @@ export class CollectionsPage implements OnInit, OnDestroy {
       })
       .then((actionSheetEl) => {
         actionSheetEl.present();
+
+        this.disableActions = false;
       });
   }
 
@@ -160,7 +168,7 @@ export class CollectionsPage implements OnInit, OnDestroy {
       name: this.form.value.collectionName[0].name,
       attributes: newCollectionAttributes,
       items: [],
-      id: Math.random().toString(),
+      numberOfItems: 0,
     };
     this.loadingCtrl
       .create({
