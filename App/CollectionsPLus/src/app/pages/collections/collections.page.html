@@ -143,7 +143,11 @@
                 errorText="Required"
               ></ion-input>
               <div class="ion-text-center">
-                <ion-button size="small" (click)="remove(index)">
+                <ion-button
+                  *ngIf="index !== 0"
+                  size="small"
+                  (click)="remove(index)"
+                >
                   Remove
                 </ion-button>
               </div>

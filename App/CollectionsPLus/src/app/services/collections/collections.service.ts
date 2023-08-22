@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, delay, map, of, switchMap, take, tap } from 'rxjs';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({
   providedIn: 'root',
@@ -76,7 +77,10 @@ export class CollectionsService {
 
   fetchCollections() {
     return this.http
-      .get<{ [key: string]: {} }>(this.restUrl + '/collections.json')
+      .get<{ [key: string]: {} }>(
+        this.restUrl +
+          `/collections.json?orderBy="userId"&equalTo="${this.authService.userId}"`
+      )
       .pipe(
         map((resData) => {
           const incomingCollections = [];
@@ -214,6 +218,7 @@ export class CollectionsService {
     return this.http
       .post<{ name: string }>(this.restUrl + '/collections.json', {
         ...collection,
+        userId: this.authService.userId,
       })
       .pipe(
         switchMap((resdata) => {
@@ -231,5 +236,5 @@ export class CollectionsService {
       );
   }
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 }
