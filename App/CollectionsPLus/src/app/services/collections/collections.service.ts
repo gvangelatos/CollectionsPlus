@@ -76,28 +76,33 @@ export class CollectionsService {
   }
 
   fetchCollections() {
-    return this.http
-      .get<{ [key: string]: {} }>(
-        this.restUrl +
-          `/collections.json?orderBy="userId"&equalTo="${this.authService.userId}"`
-      )
-      .pipe(
-        map((resData) => {
-          const incomingCollections = [];
-          for (const key in resData) {
-            if (resData.hasOwnProperty(key)) {
-              incomingCollections.push({
-                id: key,
-                ...resData[key],
-              });
-            }
+    return this.authService.userId.pipe(
+      take(1),
+      switchMap((userId) => {
+        // if (!userId) {
+        //   return of(null);
+        // }
+        return this.http.get<{ [key: string]: {} }>(
+          this.restUrl +
+            `/collections.json?orderBy="userId"&equalTo="${userId}"`
+        );
+      }),
+      map((resData) => {
+        const incomingCollections = [];
+        for (const key in resData) {
+          if (resData.hasOwnProperty(key)) {
+            incomingCollections.push({
+              id: key,
+              ...resData[key],
+            });
           }
-          return incomingCollections;
-        }),
-        tap((refactoredCollections) => {
-          this._collections.next(refactoredCollections);
-        })
-      );
+        }
+        return incomingCollections;
+      }),
+      tap((refactoredCollections) => {
+        this._collections.next(refactoredCollections);
+      })
+    );
   }
 
   getCollection(id: string) {
@@ -215,25 +220,33 @@ export class CollectionsService {
 
   addCollection(collection: any) {
     let generatedId: string;
-    return this.http
-      .post<{ name: string }>(this.restUrl + '/collections.json', {
-        ...collection,
-        userId: this.authService.userId,
+    return this.authService.userId.pipe(
+      take(1),
+      switchMap((userId) => {
+        // if (!userId) {
+        //   return of(null);
+        // }
+        return this.http.post<{ name: string }>(
+          this.restUrl + '/collections.json',
+          {
+            ...collection,
+            userId: userId,
+          }
+        );
+      }),
+      switchMap((resdata) => {
+        generatedId = resdata?.name;
+        return this.collections;
+      }),
+      take(1),
+      tap((collections) => {
+        let updatedCollections = [
+          ...collections,
+          { ...collection, id: generatedId },
+        ];
+        this._collections.next(updatedCollections);
       })
-      .pipe(
-        switchMap((resdata) => {
-          generatedId = resdata.name;
-          return this.collections;
-        }),
-        take(1),
-        tap((collections) => {
-          let updatedCollections = [
-            ...collections,
-            { ...collection, id: generatedId },
-          ];
-          this._collections.next(updatedCollections);
-        })
-      );
+    );
   }
 
   constructor(private http: HttpClient, private authService: AuthService) {}

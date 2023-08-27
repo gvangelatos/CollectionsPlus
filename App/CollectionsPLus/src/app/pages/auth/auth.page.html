@@ -71,11 +71,11 @@
           <ion-button
             type="submit"
             color="primary"
-            (click)="f.valid ? onLogin() : wobble()"
+            (click)="f.valid ? null : wobble()"
             expand="block"
             [ngClass]="{'horizontal-shake': wobbling}"
           >
-            Login
+            {{isLogin ? 'Login' : 'Signup'}}
           </ion-button>
         </ion-col>
       </ion-row>
