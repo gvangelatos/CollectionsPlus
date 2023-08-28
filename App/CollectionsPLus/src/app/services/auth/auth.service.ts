@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, map, tap } from 'rxjs';
+import { BehaviorSubject, from, map, tap } from 'rxjs';
 import { User } from 'src/app/models/user-model/user.model';
 import { environment } from 'src/environments/environment';
+import { Preferences } from '@capacitor/preferences';
 
 export interface AuthResponseData {
   kind: string;
@@ -86,6 +87,42 @@ export class AuthService {
 
   logOut() {
     this._user.next(null);
+    Preferences.remove({ key: 'authData' });
+  }
+
+  autoLogin() {
+    return from(Preferences.get({ key: 'authData' })).pipe(
+      map((storageData) => {
+        if (!storageData?.value) {
+          return null;
+        }
+        const parsedData = JSON.parse(storageData.value) as {
+          token: string;
+          tokenExpirationDate: string;
+          userId: string;
+          email: string;
+        };
+        const expirationTime = new Date(parsedData.tokenExpirationDate);
+        if (expirationTime <= new Date()) {
+          return null;
+        }
+        const newUser = new User(
+          parsedData.userId,
+          parsedData.email,
+          parsedData.token,
+          expirationTime
+        );
+        return newUser;
+      }),
+      tap((user) => {
+        if (user) {
+          this._user.next(user);
+        }
+      }),
+      map((user) => {
+        return !!user;
+      })
+    );
   }
 
   private setUserData(userData: AuthResponseData) {
@@ -99,5 +136,29 @@ export class AuthService {
       exprationTime
     );
     this._user.next(newUser);
+    this.storeAuthData(
+      userData.localId,
+      userData.idToken,
+      exprationTime.toISOString(),
+      userData.email
+    );
+  }
+
+  private storeAuthData(
+    userId: string,
+    token: string,
+    tokenExpirationDate: string,
+    email: string
+  ) {
+    const authData = {
+      userId,
+      token,
+      tokenExpirationDate,
+      email,
+    };
+    Preferences.set({
+      key: 'authData',
+      value: JSON.stringify(authData),
+    });
   }
 }

@@ -79,9 +79,10 @@ export class CollectionsService {
     return this.authService.userId.pipe(
       take(1),
       switchMap((userId) => {
-        // if (!userId) {
-        //   return of(null);
-        // }
+        if (!userId) {
+          // return of(null);
+          throw new Error('User not found!');
+        }
         return this.http.get<{ [key: string]: {} }>(
           this.restUrl +
             `/collections.json?orderBy="userId"&equalTo="${userId}"`
@@ -223,9 +224,10 @@ export class CollectionsService {
     return this.authService.userId.pipe(
       take(1),
       switchMap((userId) => {
-        // if (!userId) {
-        //   return of(null);
-        // }
+        if (!userId) {
+          // return of(null);
+          throw new Error('User not found!');
+        }
         return this.http.post<{ name: string }>(
           this.restUrl + '/collections.json',
           {

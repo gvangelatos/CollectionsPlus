@@ -43,7 +43,7 @@ export class AuthPage implements OnInit {
     const email = form.value.email;
     const pass = form.value.password;
     this.authenticate(email, pass);
-    form.reset();
+    // form.reset();
   }
 
   wobble() {
@@ -57,7 +57,7 @@ export class AuthPage implements OnInit {
     this.isLoading = true;
     // this.authService.login();
     this.loadingCtrl
-      .create({ keyboardClose: true, message: 'Logging In...' })
+      .create({ keyboardClose: true, message: 'Authenticating...' })
       .then((loadingEl) => {
         loadingEl.present();
         let authObs: Observable<AuthResponseData>;
