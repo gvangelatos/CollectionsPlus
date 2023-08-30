@@ -10,73 +10,19 @@ export class CollectionsService {
   private restUrl: string =
     'https://collectionsplus-3fd10-default-rtdb.europe-west1.firebasedatabase.app/';
   private _collections = new BehaviorSubject<any[]>([]);
-  // private _collections = new BehaviorSubject<any[]>([
-  //   {
-  //     name: 'Books at home',
-  //     id: '12345',
-  //     attributes: ['Book Name', 'Author', 'Year', 'Price'],
-  //     numberOfItems: '2',
-  //     items: [
-  //       {
-  //         'Book Name': 'Levitas',
-  //         Author: 'Leviticus',
-  //         Year: '1885',
-  //         Price: '25',
-  //         id: Math.random(),
-  //       },
-  //       {
-  //         'Book Name': 'Levitas II',
-  //         Author: 'Leviticus',
-  //         Year: '1886',
-  //         Price: '35',
-  //         id: Math.random(),
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     name: 'Books at Summer Home',
-  //     id: '123456',
-  //     numberOfItems: '4',
-  //     attributes: ['Book Name', 'Author', 'Year', 'Price'],
-  //     items: [
-  //       {
-  //         'Book Name': 'Levitas III',
-  //         Author: 'Leviticus',
-  //         Year: '1887',
-  //         Price: '25',
-  //         id: Math.random(),
-  //       },
-  //       {
-  //         'Book Name': 'Levitas IV',
-  //         Author: 'Leviticus',
-  //         Year: '1888',
-  //         Price: '35',
-  //         id: Math.random(),
-  //       },
-  //       {
-  //         'Book Name': 'Levitas V',
-  //         Author: 'Leviticus',
-  //         Year: '1889',
-  //         Price: '35',
-  //         id: Math.random(),
-  //       },
-  //       {
-  //         'Book Name': 'Levitas VI',
-  //         Author: 'Leviticus',
-  //         Year: '1900',
-  //         Price: '35',
-  //         id: Math.random(),
-  //       },
-  //     ],
-  //   },
-  // ]);
 
   get collections() {
     return this._collections;
   }
 
   fetchCollections() {
-    return this.authService.userId.pipe(
+    let fetchedToken = '';
+    return this.authService.token.pipe(
+      take(1),
+      switchMap((token) => {
+        fetchedToken = <string>token;
+        return this.authService.userId;
+      }),
       take(1),
       switchMap((userId) => {
         if (!userId) {
@@ -85,7 +31,7 @@ export class CollectionsService {
         }
         return this.http.get<{ [key: string]: {} }>(
           this.restUrl +
-            `/collections.json?orderBy="userId"&equalTo="${userId}"`
+            `/collections.json?auth=${fetchedToken}&orderBy="userId"&equalTo="${userId}"`
         );
       }),
       map((resData) => {
@@ -107,20 +53,38 @@ export class CollectionsService {
   }
 
   getCollection(id: string) {
-    return this.http
-      .get<{ [key: string]: {} }>(this.restUrl + `/collections/${id}.json`)
-      .pipe(
-        take(1),
-        map((resData) => {
-          const incomingCollection: any = { ...resData, id };
-          return incomingCollection;
-        })
-      );
+    let fetchedToken = '';
+    return this.authService.token.pipe(
+      take(1),
+      switchMap((token) => {
+        fetchedToken = <string>token;
+        return this.http.get<{ [key: string]: {} }>(
+          this.restUrl + `/collections/${id}.json?auth=${fetchedToken}`
+        );
+      }),
+      take(1),
+      map((resData) => {
+        const incomingCollection: any = { ...resData, id };
+        return incomingCollection;
+      })
+    );
   }
 
   deleteCollectionItem(collectionId: string, itemId: string) {
     let updatedCollections: any[] = [];
-    return this.collections.pipe(
+    let fetchedToken = '';
+    let fetchedId = '';
+    return this.authService.token.pipe(
+      take(1),
+      switchMap((token) => {
+        fetchedToken = <string>token;
+        return this.authService.userId;
+      }),
+      take(1),
+      switchMap((userId) => {
+        fetchedId = <string>userId;
+        return this.collections;
+      }),
       take(1),
       switchMap((collections) => {
         if (!collections || collections.length <= 0) {
@@ -148,8 +112,9 @@ export class CollectionsService {
         updatedCollections = [...collections];
         updatedCollections[selectedCollectionIndex] = updatedCollection;
         return this.http.put(
-          this.restUrl + `/collections/${collectionId}.json`,
-          { ...updatedCollection, id: null }
+          this.restUrl +
+            `/collections/${collectionId}.json?auth=${fetchedToken}`,
+          { ...updatedCollection, id: null, userId: fetchedId }
         );
       }),
       tap(() => {
@@ -159,27 +124,44 @@ export class CollectionsService {
   }
 
   deleteCollection(collectionId: string) {
-    return this.http
-      .delete(this.restUrl + `/collections/${collectionId}.json`)
-      .pipe(
-        switchMap(() => {
-          return this.collections;
-        }),
-        take(1),
-        tap((collections) => {
-          const updatedcollections = <any[]>[
-            ...collections.filter(
-              (collection) => collection.id !== collectionId
-            ),
-          ];
-          this._collections.next(updatedcollections);
-        })
-      );
+    let fetchedToken = '';
+    return this.authService.token.pipe(
+      take(1),
+      switchMap((token) => {
+        fetchedToken = <string>token;
+        return this.http.delete(
+          this.restUrl +
+            `/collections/${collectionId}.json?auth=${fetchedToken}`
+        );
+      }),
+      switchMap(() => {
+        return this.collections;
+      }),
+      take(1),
+      tap((collections) => {
+        const updatedcollections = <any[]>[
+          ...collections.filter((collection) => collection.id !== collectionId),
+        ];
+        this._collections.next(updatedcollections);
+      })
+    );
   }
 
   addItemToCollection(collectionId: string, item: any) {
     let updatedCollections: any[] = [];
-    return this.collections.pipe(
+    let fetchedToken = '';
+    let fetchedId = '';
+    return this.authService.token.pipe(
+      take(1),
+      switchMap((token) => {
+        fetchedToken = <string>token;
+        return this.authService.userId;
+      }),
+      take(1),
+      switchMap((userId) => {
+        fetchedId = <string>userId;
+        return this.collections;
+      }),
       take(1),
       switchMap((collections) => {
         if (!collections || collections.length <= 0) {
@@ -209,8 +191,9 @@ export class CollectionsService {
         updatedCollections = [...collections];
         updatedCollections[selectedCollectionIndex] = updatedCollection;
         return this.http.put(
-          this.restUrl + `/collections/${collectionId}.json`,
-          { ...updatedCollection, id: null }
+          this.restUrl +
+            `/collections/${collectionId}.json?auth=${fetchedToken}`,
+          { ...updatedCollection, id: null, userId: fetchedId }
         );
       }),
       tap(() => {
@@ -221,7 +204,13 @@ export class CollectionsService {
 
   addCollection(collection: any) {
     let generatedId: string;
-    return this.authService.userId.pipe(
+    let fetchedToken = '';
+    return this.authService.token.pipe(
+      take(1),
+      switchMap((token) => {
+        fetchedToken = <string>token;
+        return this.authService.userId;
+      }),
       take(1),
       switchMap((userId) => {
         if (!userId) {
@@ -229,7 +218,7 @@ export class CollectionsService {
           throw new Error('User not found!');
         }
         return this.http.post<{ name: string }>(
-          this.restUrl + '/collections.json',
+          this.restUrl + `/collections.json?auth=${fetchedToken}`,
           {
             ...collection,
             userId: userId,

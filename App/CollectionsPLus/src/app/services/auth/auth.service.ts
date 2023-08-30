@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, from, map, tap } from 'rxjs';
+import { Injectable, OnDestroy } from '@angular/core';
+import { BehaviorSubject, asyncScheduler, from, map, tap } from 'rxjs';
 import { User } from 'src/app/models/user-model/user.model';
 import { environment } from 'src/environments/environment';
 import { Preferences } from '@capacitor/preferences';
@@ -18,10 +18,11 @@ export interface AuthResponseData {
 @Injectable({
   providedIn: 'root',
 })
-export class AuthService {
+export class AuthService implements OnDestroy {
   private _user: BehaviorSubject<User | null> =
     new BehaviorSubject<User | null>(null);
   private _token: BehaviorSubject<string> = new BehaviorSubject<string>('');
+  private activeLogOutTimer: any;
 
   constructor(private http: HttpClient) {}
 
@@ -42,6 +43,18 @@ export class AuthService {
       map((user) => {
         if (user) {
           return user?.id;
+        } else {
+          return null;
+        }
+      })
+    );
+  }
+
+  get token() {
+    return this._user.asObservable().pipe(
+      map((user) => {
+        if (user) {
+          return user?.token;
         } else {
           return null;
         }
@@ -86,8 +99,20 @@ export class AuthService {
   }
 
   logOut() {
+    if (this.activeLogOutTimer) {
+      clearTimeout(this.activeLogOutTimer);
+    }
     this._user.next(null);
     Preferences.remove({ key: 'authData' });
+  }
+
+  private autoLogOut(duration: number) {
+    if (this.activeLogOutTimer) {
+      clearTimeout(this.activeLogOutTimer);
+    }
+    this.activeLogOutTimer = setTimeout(() => {
+      this.logOut();
+    }, duration);
   }
 
   autoLogin() {
@@ -117,6 +142,7 @@ export class AuthService {
       tap((user) => {
         if (user) {
           this._user.next(user);
+          this.autoLogOut(user.tokenDuration);
         }
       }),
       map((user) => {
@@ -142,6 +168,7 @@ export class AuthService {
       exprationTime.toISOString(),
       userData.email
     );
+    this.autoLogOut(newUser.tokenDuration);
   }
 
   private storeAuthData(
@@ -160,5 +187,11 @@ export class AuthService {
       key: 'authData',
       value: JSON.stringify(authData),
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.activeLogOutTimer) {
+      clearTimeout(this.activeLogOutTimer);
+    }
   }
 }
