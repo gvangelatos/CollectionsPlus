@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController } from '@ionic/angular';
@@ -18,6 +18,7 @@ export class AuthPage implements OnInit {
   isLogin: boolean = true;
   wobbling: boolean = false;
   showPassword: boolean = false;
+  @ViewChild('f') authForm!: NgForm;
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -29,6 +30,7 @@ export class AuthPage implements OnInit {
 
   onSwitchMode() {
     this.isLogin = !this.isLogin;
+    this.authForm.reset();
   }
 
   togglePasswordVisible() {
